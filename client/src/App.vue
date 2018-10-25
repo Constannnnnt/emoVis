@@ -11,7 +11,7 @@
       </div>
       <div class="col-4" style="height: 100%; padding: 0">
         <div id="main-view">
-          <TextCloud></TextCloud>
+          <ControlPanel></ControlPanel>
         </div>
       </div>
     </div>
@@ -31,6 +31,7 @@ import FlowGraph from '@/components/Flowgraph/flowgraph'
 import RadialChart from '@/components/Radialchart/radialchart'
 import TextCloud from '@/components/Textcloud/textcloud'
 import OverView from '@/components/Overview/overview'
+import ControlPanel from '@/components/Controlpanel'
 
 export default {
   name: 'App',
@@ -39,7 +40,8 @@ export default {
     OverView,
     FlowGraph,
     RadialChart,
-    TextCloud
+    TextCloud,
+    ControlPanel
   },
   data () {
     return {
