@@ -4,9 +4,9 @@
       <h1 id="overview-head-title">Data View</h1>
     </div>
     <video ref="videoloader" width="100%" height="90%" preload="auto" loop playsinline autoplay="true"></video>
-    <div v-show="data != null" style="height: 94%" id="overview-vis-container">
-      <!-- <tsne-vis v-if="overview === 'tsne'" id="tsne-vis-container" :overview-data="tsneData"></tsne-vis> -->
-    </div>
+    <!-- <div v-show="data != null" style="height: 94%" id="overview-vis-container">
+      <tsne-vis v-if="overview === 'tsne'" id="tsne-vis-container" :overview-data="tsneData"></tsne-vis>
+    </div> -->
     <div v-show="video_stream != false" >
         <button class="webcam_btn" @click="stopWebCam">Stop</button>
     </div>
@@ -23,6 +23,7 @@ import EmotionClassifier from '@/js/emotion_classifier.js'
 import EmotionModel from '@/js/emotionmodel.js'
 import ModelSvm from '@/js/model_pca_20_svm.js'
 import * as Clm from '@/js/clmtrackr.js'
+import PipeService from '@/services/pipe-service.js'
 // import * as d3 from 'd3'
 
 export default {
@@ -53,14 +54,22 @@ export default {
   },
   data () {
     return {
-      data: null,
-      emotionData: null,
       vid: null,
       video_stream: false,
       ec: null,
       emotionmodel: null,
       model_svm: null,
-      clmtracker: null
+      clmtracker: null,
+      config: {
+        defaultEmotion: {
+          angry: 0.08397069950229145,
+          disgusted: 0.09125459367999424,
+          fear: 0.0318136816810977,
+          sad: 0.061685934012758334,
+          surprised: 0.054805339314313764,
+          happy: 0.18574235649383983
+        }
+      }
     }
   },
   methods: {
@@ -103,6 +112,40 @@ export default {
         navigator.mediaDevices.getUserMedia = this.legacyGetUserMediaSupport()
       }
 
+      this.ec = EmotionClassifier
+      this.ec.emotionClassifier()
+      this.emotionmodel = EmotionModel
+      this.model_svm = ModelSvm
+      this.clmtracker = Clm
+
+      this.model_svm.pModel.shapeModel.nonRegularizedVectors.push(9)
+      this.model_svm.pModel.shapeModel.nonRegularizedVectors.push(11)
+
+      this.clmtracker.clm.tracker({useWebGL: true})
+      this.clmtracker.clm.init(this.model_svm.pModel)
+      this.ec.emotionClassifier()
+      this.ec.init(this.emotionmodel.emotionModel)
+      this.emotionData = this.ec.getBlank()
+    },
+    checkDefaultEmotions (er) {
+      let erflag = false
+      er.forEach((e) => {
+        if (Math.abs(this.config.defaultEmotion[e.emotion] - e.value) < 0.01) {
+          erflag = true
+        }
+      })
+      return erflag
+    },
+    startTracking () {
+      if (this.video_stream) window.requestAnimFrame(this.startTracking)
+      var cp = this.clmtracker.clm.getCurrentParameters()
+      var er = this.ec.meanPredict(cp)
+      if (er && !this.checkDefaultEmotions(er)) {
+        PipeService.$emit(PipeService.EMOTION_DATA_CHANGE, er)
+      }
+    },
+    startWebCam () {
+      // check for camerasupport
       if (navigator.mediaDevices) {
         navigator.mediaDevices
           .getUserMedia({ audio: true, video: true })
@@ -142,34 +185,6 @@ export default {
         )
       }
 
-      this.ec = EmotionClassifier
-      this.ec.emotionClassifier()
-      this.emotionmodel = EmotionModel
-      this.model_svm = ModelSvm
-      this.clmtracker = Clm
-
-      this.model_svm.pModel.shapeModel.nonRegularizedVectors.push(9)
-      this.model_svm.pModel.shapeModel.nonRegularizedVectors.push(11)
-
-      this.clmtracker.clm.tracker({useWebGL: true})
-      this.clmtracker.clm.init(this.model_svm.pModel)
-      this.ec.emotionClassifier()
-      this.ec.init(this.emotionmodel.emotionModel)
-      this.emotionData = this.ec.getBlank()
-    },
-    startTracking () {
-      window.requestAnimFrame(this.startTracking)
-      var cp = this.clmtracker.clm.getCurrentParameters()
-      var er = this.ec.meanPredict(cp)
-      if (er) {
-        this.emotionData = er
-        console.log(er[0].value)
-      }
-      // requestAnimFrame(this.startTracking())
-    },
-    startWebCam () {
-      // check for camerasupport
-
       this.clmtracker.clm.start(this.$refs.videoloader)
 
       this.video_stream = true
@@ -187,6 +202,8 @@ export default {
         })
         this.video_stream = false
       }
+      this.clmtracker.clm.stop()
+      this.clmtracker.clm.reset()
     }
   },
   components: {}

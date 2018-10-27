@@ -2,14 +2,14 @@
   <div id="app">
     <NavBar></NavBar>
     <div class="row" :style="{width: setting.width + 'px', height: setting.height * 0.5 + 'px'}" style="margin: 0">
-      <div class="col-8" style="height: 100%; padding: 0">
+      <div class="col-9" style="height: 100%; padding: 0">
         <div id="main-view">
           <OverView></OverView>
           <RadialChart></RadialChart>
           <TextCloud></TextCloud>
         </div>
       </div>
-      <div class="col-4" style="height: 100%; padding: 0">
+      <div class="col-3" style="height: 100%; padding: 0">
         <div id="main-view">
           <ControlPanel></ControlPanel>
         </div>
