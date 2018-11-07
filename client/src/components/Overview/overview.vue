@@ -7,11 +7,21 @@
     <!-- <div v-show="data != null" style="height: 94%" id="overview-vis-container">
       <tsne-vis v-if="overview === 'tsne'" id="tsne-vis-container" :overview-data="tsneData"></tsne-vis>
     </div> -->
-    <div v-show="video_stream != false" >
-        <button class="webcam_btn" @click="stopWebCam">Stop</button>
+    <div class="row" style="border-bottom: none">
+      <div style="margin-right: 15px;" v-show="video_stream != false" >
+          <button id="camstop" class="webcam_btn" @click="stopWebCam">StopCam</button>
+      </div>
+      <div style="margin-left: 50px;" v-show="audio_stream != false">
+          <button id="micstop" class="webcam_btn" @click="stopMic">StopMic</button>
+      </div>
     </div>
-    <div v-show="video_stream === false">
-        <button id="startbutton" class="webcam_btn" @click="startWebCam">Start</button>
+    <div class="row" style="border-bottom: none">
+      <div style="margin-right: 15px;" v-show="video_stream === false">
+          <button id="camstart" class="webcam_btn" @click="startWebCam">StartCam</button>
+      </div>
+      <div style="margin-left: 50px;" v-show="audio_stream === false">
+          <button id="micstrat" class="webcam_btn" @click="startMic">StartMic</button>
+      </div>
     </div>
   </div>
 </template>
@@ -24,6 +34,9 @@ import EmotionModel from '@/js/emotionmodel.js'
 import ModelSvm from '@/js/model_pca_20_svm.js'
 import * as Clm from '@/js/clmtrackr.js'
 import PipeService from '@/services/pipe-service.js'
+// import SpeechToTextV1 from 'watson-developer-cloud/speech-to-text/v1'
+import recognizeMic from 'watson-speech/speech-to-text/recognize-microphone'
+// import MicService from '@/services/micService.js'
 // import * as d3 from 'd3'
 
 export default {
@@ -33,6 +46,10 @@ export default {
       this.initialize()
       // console.log(clmtrackr)
     })
+    const self = this
+    window.setInterval(function () {
+      self.checkText()
+    }, 2000)
     window.requestAnimFrame = (function () {
       return window.requestAnimationFrame ||
         window.webkitRequestAnimationFrame ||
@@ -56,7 +73,11 @@ export default {
     return {
       vid: null,
       video_stream: false,
+      audio_stream: false,
+      mic_stream: false,
       ec: null,
+      text: null, // 'Team, I know that times are tough! Product',
+      prev_text: null, // 'no I dont think so',
       emotionmodel: null,
       model_svm: null,
       clmtracker: null,
@@ -144,11 +165,54 @@ export default {
         PipeService.$emit(PipeService.EMOTION_DATA_CHANGE, er)
       }
     },
+    checkText () {
+      if (this.prev_text !== this.text) {
+        this.prev_text = this.text
+        const text = this.text
+        PipeService.$emit(PipeService.SPEECH_DATA_CHANGE, text)
+      }
+    },
+    stopMic () {
+      this.audio_stream = false
+    },
+    startMic () {
+      fetch('http://localhost:8081/api/token')
+        .then((response) => {
+          return response.text()
+        }).then((token) => {
+          const stream = recognizeMic({
+            access_token: token,
+            objectMode: true, // send objects instead of text
+            extractResults: true, // convert {results: [{alternatives:[...]}], result_index: 0} to {alternatives: [...], index: 0}
+            format: false // optional - performs basic formatting on the results such as capitals an periods
+          })
+
+          /**
+           * Prints the users speech to the console
+           * and assigns the text to the state.
+           */
+          stream.on('data', (data) => {
+            // this.setState({
+            //   text: data.alternatives[0].transcript
+            // })
+            this.audio_stream = true
+            this.text = data.alternatives[0].transcript
+          })
+          stream.on('error', (err) => {
+            console.log(err)
+          })
+
+          console.log(this.text)
+          document.querySelector('#micstop').onclick = stream.stop.bind(stream)
+        }).catch((err) => {
+          console.log(err)
+        })
+    },
     startWebCam () {
       // check for camerasupport
       if (navigator.mediaDevices) {
         navigator.mediaDevices
-          .getUserMedia({ audio: true, video: true })
+          .getUserMedia({ video: true })
           .then(stream => {
             if ('srcObject' in this.$refs.videoloader) {
               this.$refs.videoloader.srcObject = stream
@@ -164,7 +228,7 @@ export default {
           })
       } else if (navigator.getUserMedia) {
         navigator.getUserMedia(
-          { audio: true, video: true },
+          { video: true },
           stream => {
             if ('srcObject' in this.$refs.videoloader) {
               this.$refs.videoloader.srcObject = stream
@@ -235,7 +299,7 @@ export default {
   -moz-box-sizing: border-box;
   box-sizing: border-box;
   text-align: center;
-  width: 30%;
+  width: 100%;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -245,8 +309,8 @@ export default {
   background-image: linear-gradient(to right, #30dd8a, #2bb673);
   box-shadow: 0 1px 3px 0 rgba(23, 168, 108, 0.75);
   position: relative;
-  left: 35%;
   top: -35px;
+  left: 72px;
 }
 
 #video-loader {

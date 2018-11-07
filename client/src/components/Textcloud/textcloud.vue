@@ -1,12 +1,12 @@
 <template>
   <div id='textcloud'>
-    <div id="textcloud-head">
-      <h1 id="textcloud-head-title">Text Cloud</h1>
+    <div id='textcloud-head'>
+      <h1 id='textcloud-head-title'>Text Cloud</h1>
     </div>
-    <div v-show="data !== null" style="height: 94%" id="textcloud-vis-container">
-      <!-- <tsne-vis v-if="overview === 'tsne'" id="tsne-vis-container" :overview-data="tsneData"></tsne-vis> -->
+    <div v-show='data !== null' style='height: 94%' id='textcloud-vis-container'>
+      <!-- <tsne-vis v-if='overview === 'tsne'' id='tsne-vis-container' :overview-data='tsneData'></tsne-vis> -->
     </div>
-    <div v-show="data === null">
+    <div v-show='data === null'>
       No data loaded.
     </div>
   </div>
@@ -14,21 +14,70 @@
 
 <script>
 // import * as jQuery from 'jquery'
+import PipeService from '@/services/pipe-service.js'
+import * as d3 from 'd3'
+import MicService from '@/services/mic-service.js'
+// import d3Tip from 'd3-tip'
 
 export default {
   name: 'TextCloud',
   mounted () {
+    PipeService.$on(PipeService.SPEECH_DATA_CHANGE, (speechdata) => {
+      this.initialzeCanvas()
+      this.predictScore(speechdata).then((data) => {
+        this.speechTone.push(data)
+      })
+      this.speechTone.push(this.configData)
+      this.drawGraph()
+    })
   },
   data () {
     return {
       data: null,
-      skylineData: null,
-      fullRelation: null,
-      tsneData: null,
-      overview: 'tsne'
+      configData: {
+        'document_tone': {
+          'tones': [{
+            'score': 0.98445,
+            'tone_id': 'analytical',
+            'tone_name': 'Analytical'
+          }]
+        },
+        'sentences_tone': [{
+          'sentence_id': 0,
+          'text': 'Team, I know that times are tough!',
+          'tones': [{
+            'score': 0.801827,
+            'tone_id': 'analytical',
+            'tone_name': 'Analytical'
+          }]
+        },
+        {
+          'sentence_id': 1,
+          'text': 'Product',
+          'tones': [{
+            'score': 0.997482,
+            'tone_id': 'analytical',
+            'tone_name': 'Analytical'
+          }]
+        }]
+      },
+      speechTone: []
     }
   },
   methods: {
+    initialzeCanvas () {
+      d3.select('#textcloud-vis-container').selectAll('*').data([]).exit().remove()
+    },
+    async predictScore (text) {
+      const response = await MicService.toneAnalyze({
+        'tone_input': {'text': text},
+        'content_type': 'application/json'
+      })
+      return response
+    },
+    drawGraph () {
+      console.log(this.speechTone)
+    }
   },
   components: {
   }

@@ -13,9 +13,12 @@
     "body-parser": "^1.18.3",
     "cors": "^2.8.4",
     "express": "^4.16.3",
+    "express-secure-only": "^0.2.1",
     "mongodb": "^3.1.6",
     "mongoose": "^5.3.1",
     "morgan": "^1.9.1",
-    "nodemon": "^1.18.4"
+    "nodemon": "^1.18.4",
+    "vcap_services": "^0.6.0",
+    "watson-developer-cloud": "^3.13.0"
   }
 }

@@ -65,3 +65,6 @@ node_modules
 
 # virual environment
 venv
+
+config.js
+keys/

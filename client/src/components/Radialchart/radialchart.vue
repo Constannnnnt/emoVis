@@ -24,7 +24,19 @@ export default {
     // this.data = null
     PipeService.$on(PipeService.EMOTION_DATA_CHANGE, (emotionData) => {
       this.emotionData = emotionData
-      if (this.emotionData.length === 6) this.emotionData.splice(3, 0, {'emotion': 'neural', 'value': 0.5000000001})
+      if (this.emotionData.length === 6) {
+        let flag = false
+        this.emotionData.foreach((el) => {
+          if (el.value > 0.5) {
+            flag = true
+          }
+        })
+        if (flag) {
+          this.emotionData.splice(3, 0, {'emotion': 'neural', 'value': 0.0})
+        } else {
+          this.emotionData.splice(3, 0, {'emotion': 'neural', 'value': 0.5000000001})
+        }
+      }
       this.initialzeCanvas()
       this.drawRadial()
     })
