@@ -1,7 +1,64 @@
-# MEVN-Template
+# EmoVIS
 
-A fullstack template with MongoDB, ExpressJS, VueJS and NodeJS.
+## Prerequisite
 
-<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSOOiKh1Xk5RDZFKPkVXYfi8U-t2cuotiAOR7G_7w_HWXfV02TMnd9wnVM" height="55" /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src="https://i.cloudup.com/zfY6lL7eFa-3000x3000.png" height="55" /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src="https://vuejs.org/images/logo.png" height="60" /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Node.js_logo.svg/1200px-Node.js_logo.svg.png" height="80" />
+### IBM Waston IM Services
 
-This template is built on this tutorials, [Part-A](https://medium.com/@anaida07/mevn-stack-application-part-1-3a27b61dcae0) and [Part-B](https://medium.com/@anaida07/mevn-stack-application-part-2-2-9ebcf8a22753).
+1. Create two services at IBM Waston: Speech-to-Text & Tone-Analyzer
+
+2. Create `config.js` in the `server` directory and put credentials in the `config.js` as follows.
+
+```js
+const config = {
+    'speech_to_text': [{
+        'credentials': {
+            'url': ''
+            'iam_apikey': ''
+        }]
+    }],
+    'tone_analyzer': [{
+        'credentials': {
+            'url': '',
+            'iam_apikey': ''
+        },]
+    }]
+}
+
+module.exports = config;
+
+```
+
+3. Generate Your Own Trusted LocalHost Certificate and put them at `server/src/keys/` to enable https at the localhost
+
+```bash
+openssl req -x509 -out localhost.crt -keyout localhost.key \
+  -newkey rsa:2048 -nodes -sha256 \
+  -subj '/CN=localhost' -extensions EXT -config <( \
+   printf "[dn]\nCN=localhost\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:localhost\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth")
+```
+
+## Usage
+
+### Client
+
+```bash
+cd client
+npm install
+npm start
+```
+
+### Server
+
+```bash
+cd server
+npm install
+npm start
+```
+
+## Contributions
+
+Feel free to implement anything from the roadmap, submit pull requests, create issues, discuss ideas or spread the word.
+
+## License
+
+MIT &copy; [Yuan Chen](https://github.com/constannnnnt)

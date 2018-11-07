@@ -1,11 +1,7 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const cors = require('cors')
-const vcapServices = require('vcap_services')
 const morgan = require('morgan')
-const watson = require('watson-developer-cloud')
-const SpeechToTextV1 = require('watson-developer-cloud/speech-to-text/v1')
-const AuthorizationV1 = require('watson-developer-cloud/authorization/v1')
 const ToneAnalyzerV3 = require('watson-developer-cloud/tone-analyzer/v3')
 const IamTokenManagerV1 = require('watson-developer-cloud/iam-token-manager/v1')
 
