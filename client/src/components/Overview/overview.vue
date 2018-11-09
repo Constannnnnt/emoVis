@@ -8,19 +8,17 @@
       <tsne-vis v-if="overview === 'tsne'" id="tsne-vis-container" :overview-data="tsneData"></tsne-vis>
     </div> -->
     <div class="row" style="border-bottom: none">
-      <div style="margin-right: 15px;" v-show="video_stream != false" >
-          <button id="camstop" class="webcam_btn" @click="stopWebCam">StopCam</button>
-      </div>
-      <div style="margin-left: 50px;" v-show="audio_stream != false">
-          <button id="micstop" class="webcam_btn" @click="stopMic">StopMic</button>
-      </div>
-    </div>
-    <div class="row" style="border-bottom: none">
-      <div style="margin-right: 15px;" v-show="video_stream === false">
+       <div style="margin-right: 15px;" v-if="video_stream === false">
           <button id="camstart" class="webcam_btn" @click="startWebCam">StartCam</button>
       </div>
-      <div style="margin-left: 50px;" v-show="audio_stream === false">
+      <div style="margin-right: 15px;" v-else-if="video_stream !== false">
+          <button id="camstop" class="webcam_btn" @click="stopWebCam">StopCam</button>
+      </div>
+      <div style="margin-left: 50px;" v-if="audio_stream === false">
           <button id="micstrat" class="webcam_btn" @click="startMic">StartMic</button>
+      </div>
+      <div style="margin-left: 50px;" v-else-if="audio_stream != false">
+          <button id="micstop" class="webcam_btn">StopMic</button>
       </div>
     </div>
   </div>
@@ -76,8 +74,8 @@ export default {
       audio_stream: false,
       mic_stream: false,
       ec: null,
-      text: null, // 'Team, I know that times are tough! Product',
-      prev_text: null, // 'no I dont think so',
+      text: 'Team, I know that times are tough! Product',
+      prev_text: 'no I dont think so',
       emotionmodel: null,
       model_svm: null,
       clmtracker: null,
@@ -134,6 +132,8 @@ export default {
       }
 
       this.ec = EmotionClassifier
+      // delete EmotionModel['disgusted']
+      // delete EmotionModel['fear']
       this.ec.emotionClassifier()
       this.emotionmodel = EmotionModel
       this.model_svm = ModelSvm
@@ -161,7 +161,7 @@ export default {
       if (this.video_stream) window.requestAnimFrame(this.startTracking)
       var cp = this.clmtracker.clm.getCurrentParameters()
       var er = this.ec.meanPredict(cp)
-      if (er && !this.checkDefaultEmotions(er)) {
+      if (er) {
         PipeService.$emit(PipeService.EMOTION_DATA_CHANGE, er)
       }
     },
@@ -191,19 +191,23 @@ export default {
            * Prints the users speech to the console
            * and assigns the text to the state.
            */
+          this.audio_stream = true
           stream.on('data', (data) => {
             // this.setState({
             //   text: data.alternatives[0].transcript
             // })
-            this.audio_stream = true
             this.text = data.alternatives[0].transcript
           })
           stream.on('error', (err) => {
             console.log(err)
           })
 
-          console.log(this.text)
-          document.querySelector('#micstop').onclick = stream.stop.bind(stream)
+          const self = this
+          console.log(self)
+          document.querySelector('#micstop').onclick = function () {
+            self.audio_stream = false
+            return stream.stop.bind(stream)
+          }
         }).catch((err) => {
           console.log(err)
         })

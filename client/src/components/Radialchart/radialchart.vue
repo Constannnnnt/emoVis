@@ -26,8 +26,8 @@ export default {
       this.emotionData = emotionData
       if (this.emotionData.length === 6) {
         let flag = false
-        this.emotionData.foreach((el) => {
-          if (el.value > 0.5) {
+        this.emotionData.forEach((el) => {
+          if (el.value > 0.3) {
             flag = true
           }
         })
@@ -78,7 +78,7 @@ export default {
       }) // name of each axis
       const totalAxis = allAxis.length // total number of axis
       const angleSlice = Math.PI * 2 / totalAxis // The width in radians of each 'slice'
-      const rScale = d3.scaleLinear().domain([0, this.config.maxValue]).range([20, this.config.radius])
+      const rScale = d3.scaleLinear().domain([0, this.config.maxValue]).range([0, this.config.radius])
       const svg = d3.select(el).append('svg')
         .attr('id', 'radar-chart')
         .attr('width', this.canvasWidth)
@@ -93,7 +93,6 @@ export default {
           str = `<div class="d3-tip">name: ${nd.emotion}`
         }
         str += `</br>value: ${Format(nd.value)}</div>`
-        console.log(str)
         return str
       })
 
