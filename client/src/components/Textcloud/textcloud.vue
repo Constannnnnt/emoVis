@@ -108,9 +108,11 @@ export default {
     generatePointLinks () {
       const nodeinfo = this.speechTone[this.speechTone.length - 1]
       const id = this.data
+      const keys = Object.keys(this.emotionColor)
+      const randomgroup = keys[keys.length * Math.random() << 0]
       const parentnode = {
         'id': id,
-        'group': nodeinfo.document_tone.tones[0].tone_id,
+        'group': randomgroup, // nodeinfo.document_tone.tones[0].tone_id,
         'score': nodeinfo.document_tone.tones[0].score
       }
       this.nodes.push(parentnode)
@@ -118,7 +120,7 @@ export default {
         nodeinfo.sentences_tone.forEach((n) => {
           const childnode = {
             'id': n.text,
-            'group': n.tones[0].tone_id,
+            'group': randomgroup, // n.tones[0].tone_id,
             'score': n.tones[0].score
           }
           this.nodes.push(childnode)
