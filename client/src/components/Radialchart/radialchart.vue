@@ -60,13 +60,24 @@ export default {
         opacityCircles: 0.1,
         strokeWidth: 2,
         roundStrokes: false,
-        wrapWidth: 40 // The number of pixels after which a label needs to be given a new line
+        wrapWidth: 40, // The number of pixels after which a label needs to be given a new line
+        emotionColor: {
+          angry: '#cf000f',
+          disgusted: '#8c14fc',
+          fear: '#ffcb05',
+          neural: '#e4e9ed',
+          sad: '#19b5fe',
+          surprised: '#fef160',
+          happy: '#2ecc71'
+        }
       }
     }
   },
   methods: {
     initialzeCanvas () {
       d3.select('#radial-view-vis-container').selectAll('*').data([]).exit().remove()
+      // const elements = document.getElementsByClassName('d3-tip')
+      // while (elements.length > 0) elements[0].remove()
     },
     drawRadial () {
       const el = '#radial-view-vis-container'
@@ -76,6 +87,7 @@ export default {
       const allAxis = this.emotionData.map((d) => {
         return d.emotion
       }) // name of each axis
+
       const totalAxis = allAxis.length // total number of axis
       const angleSlice = Math.PI * 2 / totalAxis // The width in radians of each 'slice'
       const rScale = d3.scaleLinear().domain([0, this.config.maxValue]).range([0, this.config.radius])
@@ -90,10 +102,19 @@ export default {
       const tip = d3Tip().attr('class', 'd3-tip').html((nd) => {
         let str
         if (nd.emotion !== undefined) {
-          str = `<div class="d3-tip">name: ${nd.emotion}`
+          str = `<div class="d3-tip">emotion: ${nd.emotion}`
         }
-        str += `</br>value: ${Format(nd.value)}</div>`
+        str += `</br>score: ${Format(nd.value)}</div>`
         return str
+      })
+
+      let maxScoreEmotion
+      let maxScore = -1
+      this.emotionData.forEach((d) => {
+        if (d.value > maxScore) {
+          maxScoreEmotion = d.emotion
+          maxScore = d.value
+        }
       })
 
       /// /////////////////////////////////////////////////////
@@ -103,7 +124,7 @@ export default {
       // Wrapper for the grid & axes
       const axisGrid = g.append('g').attr('class', 'axisWrapper')
 
-      d3.select(el).select('svg').call(tip)
+      d3.select('#radial-view-vis-container').select('svg').call(tip)
 
       // Draw the background circles
       axisGrid.selectAll('.levels')
@@ -205,7 +226,7 @@ export default {
           return radarLine(d)
         })
         .style('fill', (d, i) => {
-          return 'black '
+          return this.config.emotionColor[maxScoreEmotion]
         })
         .style('fill-opacity', this.config.opacityArea)
         .on('mouseover', (d, i) => {
@@ -233,7 +254,7 @@ export default {
         })
         .style('stroke-width', this.config.strokeWidth + 'px')
         .style('stroke', (d, i) => {
-          return 'black'
+          return this.config.emotionColor[maxScoreEmotion]
         })
         .style('fill', 'none')
 
@@ -253,15 +274,20 @@ export default {
           return rScale(d.value) * Math.sin(angleSlice * i - Math.PI / 2)
         })
         .style('fill', (d, i, j) => {
-          return 'orange'
+          return this.config.emotionColor[d.emotion]
         })
         .style('fill-opacity', 0.8)
-        .on('mouseover', function (d) {
-          tip.show(d, this)
-        })
-        .on('mouseout', () => {
-          tip.hide(this)
-        })
+        // .on('mouseover', function (d) {
+        //   tip.show(d, this)
+        // })
+        // .on('mouseout', function (d) {
+        //   // tip.hide()
+        //   console.log(d)
+        //   console.log(document.getElementsByClassName('d3-tip'))
+        //   console.log(document)
+        //   const elements = document.getElementsByClassName('d3-tip')
+        //   while (elements.length > 0) elements[0].remove()
+        // })
     }
   },
   components: {

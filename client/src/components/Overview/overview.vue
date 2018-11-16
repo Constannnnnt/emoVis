@@ -166,11 +166,11 @@ export default {
       }
     },
     checkText () {
-      if (this.prev_text !== this.text) {
-        this.prev_text = this.text
-        const text = this.text
-        PipeService.$emit(PipeService.SPEECH_DATA_CHANGE, text)
-      }
+      // if (this.prev_text !== this.text) {
+      this.prev_text = this.text
+      const text = this.text
+      PipeService.$emit(PipeService.SPEECH_DATA_CHANGE, text)
+      // }
     },
     stopMic () {
       this.audio_stream = false

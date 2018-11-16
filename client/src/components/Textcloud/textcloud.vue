@@ -71,6 +71,15 @@ export default {
       simulation: null,
       nodes: [],
       links: [],
+      groups: {
+        angry: [],
+        fear: [],
+        joy: [],
+        sadness: [],
+        analytical: [],
+        confident: [],
+        tentative: []
+      },
       config: {
         margin: {
           left: 2
@@ -81,13 +90,13 @@ export default {
         radiusLength: 5
       },
       emotionColor: {
-        angry: 'red',
-        fear: 'black',
-        joy: 'orange',
-        sadness: 'blue',
-        analytical: 'green',
-        confident: 'yellow',
-        tentative: 'pink'
+        angry: '#cf000f',
+        fear: '#ffcb05',
+        joy: '#2ecc71',
+        sadness: '#19b5fe',
+        analytical: '#3a539b',
+        confident: '#fad859',
+        tentative: '#d2527f'
       }
     }
   },
@@ -113,15 +122,18 @@ export default {
       const parentnode = {
         'id': id,
         'group': randomgroup, // nodeinfo.document_tone.tones[0].tone_id,
-        'score': nodeinfo.document_tone.tones[0].score
+        'score': nodeinfo.document_tone.tones[0].score,
+        'idx': this.speechTone.length - 1
       }
       this.nodes.push(parentnode)
+      this.groups[parentnode.group].push(parentnode)
       if (nodeinfo.sentences_tone.length !== 1) {
         nodeinfo.sentences_tone.forEach((n) => {
           const childnode = {
             'id': n.text,
             'group': randomgroup, // n.tones[0].tone_id,
-            'score': n.tones[0].score
+            'score': n.tones[0].score,
+            'idx': str(parentnode.idx) + '-' + n.text
           }
           this.nodes.push(childnode)
           const link = {
@@ -136,6 +148,33 @@ export default {
           }
           this.links.push(link)
         })
+      }
+      const pnodes = this.nodes.filter((node) => instanceOf(node.idx) === Int)
+      if (pnodes.length > 1 && this.groups[parentnode.group].length > 1) {
+        if (pnodes[pnodes.length - 2].idx !== this.groups[parentnode.group][this.groups[parentnode.group].length - 2].idx) {
+          const link1 = {
+            'source': pnodes[pnodes.length - 2].id,
+            'target': parentnode.id,
+            'score': Math.abs(parentnode.score - pnodes[pnodes.length - 2].score)
+          }
+          const link2 = {
+            'source': this.groups[parentnode.group][this.groups[parentnode.group].length - 2].id,
+            'target': parentnode.id,
+            'score': Math.abs(parentnode.score - this.groups[parentnode.group][this.groups[parentnode.group].length - 2].score)
+          }
+
+          this.links.push(link1)
+          this.links.push(link2)
+          console.log('1')
+        } else {
+          const link1 = {
+            'source': pnodes[pnodes.length - 2].id,
+            'target': parentnode.id,
+            'score': Math.abs(parentnode.score - pnodes[pnodes.length - 2].score)
+          }
+          this.links.push(link1)
+          console.log('2')
+        }
       }
     },
     getGroupColor (group) {
@@ -163,6 +202,7 @@ export default {
         .force('charge', d3.forceManyBody())
         .force('x', d3.forceX())
         .force('y', d3.forceY())
+        // .force("center", d3.forceCenter())
         .on('tick', ticked)
 
       const link = g.append('g')
