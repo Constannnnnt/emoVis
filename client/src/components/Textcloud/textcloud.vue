@@ -9,7 +9,7 @@
     <div v-else-if='data !== null' id='transcript'>
         <span id='transcript-head'>Text:</span> {{data}}
     </div>
-    <div style='height: 94%' id='textcloud-vis-container'>
+    <div style='height: 90%; width: 105%' id='textcloud-vis-container'>
       <!-- <tsne-vis v-if='overview === 'tsne'' id='tsne-vis-container' :overview-data='tsneData'></tsne-vis> -->
     </div>
 
@@ -80,6 +80,8 @@ export default {
         confident: [],
         tentative: []
       },
+      dbclicked: [],
+      clicked: [],
       config: {
         margin: {
           left: 2
@@ -95,7 +97,7 @@ export default {
         joy: '#2ecc71',
         sadness: '#19b5fe',
         analytical: '#3a539b',
-        confident: '#fad859',
+        confident: '#e87e04',
         tentative: '#d2527f'
       }
     }
@@ -125,20 +127,22 @@ export default {
         'score': nodeinfo.document_tone.tones[0].score,
         'idx': this.speechTone.length - 1
       }
+
       this.nodes.push(parentnode)
       this.groups[parentnode.group].push(parentnode)
+
       if (nodeinfo.sentences_tone.length !== 1) {
-        nodeinfo.sentences_tone.forEach((n) => {
+        nodeinfo.sentences_tone.forEach((n, i) => {
           const childnode = {
             'id': n.text,
             'group': randomgroup, // n.tones[0].tone_id,
             'score': n.tones[0].score,
-            'idx': str(parentnode.idx) + '-' + n.text
+            'idx': (parentnode.idx).toString() + '-' + i.toString()
           }
           this.nodes.push(childnode)
           const link = {
-            'source': parentnode.id,
-            'target': childnode.id,
+            'source': parentnode.idx,
+            'target': childnode.idx,
             'score': 0
           }
           if (parentnode.group !== childnode.group) {
@@ -149,31 +153,39 @@ export default {
           this.links.push(link)
         })
       }
-      const pnodes = this.nodes.filter((node) => instanceOf(node.idx) === Int)
-      if (pnodes.length > 1 && this.groups[parentnode.group].length > 1) {
-        if (pnodes[pnodes.length - 2].idx !== this.groups[parentnode.group][this.groups[parentnode.group].length - 2].idx) {
-          const link1 = {
-            'source': pnodes[pnodes.length - 2].id,
-            'target': parentnode.id,
-            'score': Math.abs(parentnode.score - pnodes[pnodes.length - 2].score)
-          }
-          const link2 = {
-            'source': this.groups[parentnode.group][this.groups[parentnode.group].length - 2].id,
-            'target': parentnode.id,
-            'score': Math.abs(parentnode.score - this.groups[parentnode.group][this.groups[parentnode.group].length - 2].score)
-          }
 
-          this.links.push(link1)
-          this.links.push(link2)
-          console.log('1')
+      const pnodes = this.nodes.filter((node) => typeof (node.idx) !== 'string')
+      if (pnodes.length > 1) {
+        if (this.groups[parentnode.group].length > 1) {
+          if (pnodes[pnodes.length - 2].idx !== this.groups[parentnode.group][this.groups[parentnode.group].length - 2].idx) {
+            const link1 = {
+              'source': parentnode.idx,
+              'target': pnodes[pnodes.length - 2].idx,
+              'score': Math.abs(parentnode.score - pnodes[pnodes.length - 2].score)
+            }
+            const link2 = {
+              'source': parentnode.idx,
+              'target': this.groups[parentnode.group][this.groups[parentnode.group].length - 2].idx,
+              'score': Math.abs(parentnode.score - this.groups[parentnode.group][this.groups[parentnode.group].length - 2].score)
+            }
+
+            this.links.push(link1)
+            this.links.push(link2)
+          } else {
+            const link1 = {
+              'source': parentnode.idx,
+              'target': pnodes[pnodes.length - 2].idx,
+              'score': Math.abs(parentnode.score - pnodes[pnodes.length - 2].score)
+            }
+            this.links.push(link1)
+          }
         } else {
           const link1 = {
-            'source': pnodes[pnodes.length - 2].id,
-            'target': parentnode.id,
+            'source': parentnode.idx,
+            'target': pnodes[pnodes.length - 2].idx,
             'score': Math.abs(parentnode.score - pnodes[pnodes.length - 2].score)
           }
           this.links.push(link1)
-          console.log('2')
         }
       }
     },
@@ -188,21 +200,22 @@ export default {
 
       const svg = d3.select(el).append('svg')
         .attr('id', 'text-graph')
-        .attr('viewBox', `0 0 ${this.canvasWidth * 0.95} ${this.canvasHeight * 0.95}`)
+        .attr('viewBox', `${0} ${0} ${this.canvasWidth} ${this.canvasHeight}`)
         .attr('width', this.canvasWidth)
         .attr('height', this.canvasHeight)
         // .on('dblclick.zoom', null)
       const lineScale = d3.scaleLinear().domain([0, this.config.maxValueLength]).range([0, this.config.lineLength])
       const radiusScale = d3.scaleLinear().domain([0, this.config.maxValue]).range([0, this.config.radiusLength])
+      const parentRadiusScale = d3.scaleLinear().domain([0, this.config.maxValue]).range([0, this.config.radiusLength * 1.5])
       const g = svg.append('g')
         .attr('transform', 'translate(' + (this.canvasWidth / 2 + this.config.margin.left) + ',' + (this.canvasHeight / 2) + ')')
 
       this.simulation = d3.forceSimulation(this.nodes)
-        .force('link', d3.forceLink(this.links).id(d => d.id).distance(d => lineScale(d.score)))
+        .force('link', d3.forceLink(this.links).id(d => d.idx).distance(d => lineScale(d.score)))
         .force('charge', d3.forceManyBody())
-        .force('x', d3.forceX())
-        .force('y', d3.forceY())
-        // .force("center", d3.forceCenter())
+        // .force('x', d3.forceX())
+        // .force('y', d3.forceY())
+        .force('center', d3.forceCenter())
         .on('tick', ticked)
 
       const link = g.append('g')
@@ -221,9 +234,69 @@ export default {
         .data(this.nodes)
         .enter()
         .append('circle')
-        .attr('id', d => d.id)
-        .attr('r', d => radiusScale(d.score))
+        .attr('class', d => d.group)
+        .attr('id', d => 'idx' + '-' + d.idx)
+        .attr('r', (d) => {
+          if (typeof (d.idx) === 'number') {
+            return parentRadiusScale(d.score)
+          } else {
+            return radiusScale(d.score)
+          }
+        })
         .attr('fill', d => this.getGroupColor(d.group))
+        .attr('fill-opacity', 0.8)
+        .on('click', (d) => {
+          if (self.clicked.length !== 0) {
+            if (self.clicked[0].idx === d.idx) {
+              d3.selectAll('circle').attr('fill-opacity', 0.8)
+              self.clicked.splice(-1, 1)
+            } else {
+              d3.selectAll('circle').attr('fill-opacity', 0.2)
+              d3.select(`#${'idx' + '-' + d.idx}`).attr('fill-opacity', 0.8)
+              self.links.forEach((l) => {
+                if (l.source.idx === d.idx && typeof (l.target.idx) === 'number') {
+                  d3.select(`#${'idx' + '-' + l.target.idx}`).attr('fill-opacity', 0.8)
+                }
+                if (l.target.idx === d.dix && typeof (l.source.idx) === 'number') {
+                  d3.select(`#${'idx' + '-' + l.source.idx}`).attr('fill-opacity', 0.8)
+                }
+              })
+              self.clicked.splice(-1, 1)
+              self.clicked.push(d)
+            }
+          } else {
+            d3.selectAll('circle').attr('fill-opacity', 0.2)
+            d3.select(`#${'idx' + '-' + d.idx}`).attr('fill-opacity', 0.8)
+            self.links.forEach((l) => {
+              if (l.source.idx === d.idx && typeof (l.target.idx) === 'number') {
+                d3.select(`#${'idx' + '-' + l.target.idx}`).attr('fill-opacity', 0.8)
+              }
+              if (l.target.idx === d.idx && typeof (l.source.idx) === 'number') {
+                d3.select(`#${'idx' + '-' + l.source.idx}`).attr('fill-opacity', 0.8)
+              }
+            })
+            self.clicked.push(d)
+          }
+        })
+        .on('dblclick', (d) => {
+          if (self.dbclicked.length !== 0) {
+            if (self.dbclicked[0].idx === d.idx) {
+              d3.selectAll('circle').attr('fill-opacity', 0.8)
+              self.dbclicked.splice(-1, 1)
+            } else {
+              d3.selectAll('circle').attr('fill-opacity', 0.2)
+              d3.selectAll(`.${d.group}`).attr('class', d.group).attr('fill-opacity', 0.6)
+              d3.select(`#${'idx' + '-' + d.idx}`).attr('fill-opacity', 0.8)
+              self.dbclicked.splice(-1, 1)
+              self.dbclicked.push(d)
+            }
+          } else {
+            d3.selectAll('circle').attr('fill-opacity', 0.2)
+            d3.selectAll(`.${d.group}`).attr('class', d.group).attr('fill-opacity', 0.6)
+            d3.select(`#${'idx' + '-' + d.idx}`).attr('fill-opacity', 0.8)
+            self.dbclicked.push(d)
+          }
+        })
         .call(d3.drag()
           .on('start', dragstarted)
           .on('drag', dragged)
@@ -257,8 +330,25 @@ export default {
           .attr('y2', d => d.target.y)
 
         node
-          .attr('cx', d => d.x)
-          .attr('cy', d => d.y)
+          .attr('cx', (d) => {
+            // return d.x
+            if (self.canvasWidth / 2 - self.config.radiusLength < d.x) {
+              d.x = self.canvasWidth / 2 - self.config.radiusLength * 2
+            } else if (d.x < -self.canvasWidth / 2) {
+              d.x = -self.canvasWidth / 2 + self.config.radiusLength
+            }
+
+            return d.x
+          })
+          .attr('cy', (d) => {
+            if (self.canvasHeight / 2 - self.config.radiusLength < d.y) {
+              d.y = self.canvasHeight / 2 - self.config.radiusLength * 2
+            } else if (d.y < -self.canvasHeight / 2) {
+              d.y = -self.canvasHeight / 2 + self.config.radiusLength
+            }
+
+            return d.y
+          })
       }
     }
   }

@@ -40,14 +40,17 @@ import recognizeMic from 'watson-speech/speech-to-text/recognize-microphone'
 export default {
   name: 'OverView',
   mounted () {
+    for (let i = 0; i < 10; i++) {
+      this.checkText()
+    }
     this.$nextTick(() => {
       this.initialize()
       // console.log(clmtrackr)
     })
-    const self = this
-    window.setInterval(function () {
-      self.checkText()
-    }, 2000)
+    // const self = this
+    // window.setInterval(function () {
+    //   self.checkText()
+    // }, 3000)
     window.requestAnimFrame = (function () {
       return window.requestAnimationFrame ||
         window.webkitRequestAnimationFrame ||
