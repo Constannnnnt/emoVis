@@ -9,10 +9,9 @@
     <div v-else-if='data !== null' id='transcript'>
         <span id='transcript-head'>Text:</span> {{data}}
     </div>
-    <div style='height: 90%; width: 105%' id='textcloud-vis-container'>
+    <div style='height: 90%;' id='textcloud-vis-container'>
       <!-- <tsne-vis v-if='overview === 'tsne'' id='tsne-vis-container' :overview-data='tsneData'></tsne-vis> -->
     </div>
-
   </div>
 </template>
 
@@ -208,16 +207,63 @@ export default {
       const radiusScale = d3.scaleLinear().domain([0, this.config.maxValue]).range([0, this.config.radiusLength])
       const parentRadiusScale = d3.scaleLinear().domain([0, this.config.maxValue]).range([0, this.config.radiusLength * 1.5])
       const g = svg.append('g')
-        .attr('transform', 'translate(' + (this.canvasWidth / 2 + this.config.margin.left) + ',' + (this.canvasHeight / 2) + ')')
+        .attr('transform', 'translate(' + (this.canvasWidth * 0.85 / 2 + this.config.margin.left) + ',' + (this.canvasHeight / 2) + ')')
 
       this.simulation = d3.forceSimulation(this.nodes)
         .force('link', d3.forceLink(this.links).id(d => d.idx).distance(d => lineScale(d.score)))
-        .force('charge', d3.forceManyBody())
-        // .force('x', d3.forceX())
-        // .force('y', d3.forceY())
-        .force('center', d3.forceCenter())
+        .force('charge', d3.forceManyBody().distanceMax(200))
+        .force('x', d3.forceX())
+        .force('y', d3.forceY())
+        // .force('center', d3.forceCenter())
         .on('tick', ticked)
 
+      // add indicators
+      const indicatorG = svg.append('g')
+        .attr('transform', 'translate(' + (this.canvasWidth * 0.84 + this.config.margin.left) + ',' + (0) + ')')
+
+      const emoColorArr = Object.keys(this.emotionColor).map((key) => {
+        return [key, this.emotionColor[key]]
+      })
+
+      const indicatorGnum = svg.append('g')
+        .attr('transform', 'translate(' + (this.canvasWidth * 0.84 + this.config.margin.left + 62) + ',' + (0) + ')')
+
+      indicatorG.append('g')
+        .selectAll('rect')
+        .data(emoColorArr)
+        .enter()
+        .append('rect')
+        .attr('y', (d, i) => (i + 1) * 40 - 12)
+        .attr('width', 60)
+        .attr('height', 15)
+        .attr('fill', (d) => d[1])
+        .attr('fill-opacity', 0.8)
+
+      indicatorG.append('g')
+        .selectAll('text')
+        .data(emoColorArr)
+        .enter()
+        .append('text')
+        .text((d) => d[0])
+        // .attr('fill', 'white')
+        .attr('x', 4)
+        .attr('stroke-width', `2em`)
+        .attr('fill', 'white')
+        .attr('y', (d, i) => (i + 1) * 40)
+
+      indicatorGnum.append('g')
+        .selectAll('text')
+        .data(emoColorArr)
+        .enter()
+        .append('text')
+        .text((d) => this.groups[d[0]].length)
+        // .attr('fill', 'white')
+        .attr('x', 2)
+        .attr('stroke-width', `2em`)
+        .attr('fill', 'grey')
+        .attr('y', (d, i) => (i + 1) * 40)
+
+      // add nodes and links
       const link = g.append('g')
         .attr('stroke', '#999')
         .attr('stroke-opacity', 0.6)
@@ -332,10 +378,10 @@ export default {
         node
           .attr('cx', (d) => {
             // return d.x
-            if (self.canvasWidth / 2 - self.config.radiusLength < d.x) {
-              d.x = self.canvasWidth / 2 - self.config.radiusLength * 2
-            } else if (d.x < -self.canvasWidth / 2) {
-              d.x = -self.canvasWidth / 2 + self.config.radiusLength
+            if (self.canvasWidth * 0.85 / 2 - self.config.radiusLength < d.x) {
+              d.x = self.canvasWidth * 0.85 / 2 - self.config.radiusLength * 2
+            } else if (d.x < -self.canvasWidth * 0.85 / 2) {
+              d.x = -self.canvasWidth * 0.85 / 2 + self.config.radiusLength * 2
             }
 
             return d.x
@@ -344,7 +390,7 @@ export default {
             if (self.canvasHeight / 2 - self.config.radiusLength < d.y) {
               d.y = self.canvasHeight / 2 - self.config.radiusLength * 2
             } else if (d.y < -self.canvasHeight / 2) {
-              d.y = -self.canvasHeight / 2 + self.config.radiusLength
+              d.y = -self.canvasHeight / 2 + self.config.radiusLength * 2
             }
 
             return d.y
@@ -359,12 +405,13 @@ export default {
 
 #textcloud
     height: 100%
-    width: 34%
+    width: 43%
     display: inline-block
     vertical-align: top
     padding: 0
     margin: 5px
     border-left: 1px solid rgba(0, 0, 0, 0.4)
+    border-right: 1px solid rgba(0, 0, 0, 0.4)
 
 #textcloud-head
     vertical-align: top

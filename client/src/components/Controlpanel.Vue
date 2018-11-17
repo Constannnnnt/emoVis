@@ -3,7 +3,7 @@
     <div id="controlpanel-head">
       <h1 id="controlpanel-head-title">Control Panel</h1>
     </div>
-    <div v-show="data !== null" style="height: 94%" id="controlpanel-vis-container">
+    <div v-show="data !== null" style="height: 94%; width: 100%" id="controlpanel-vis-container">
       <!-- <tsne-vis v-if="overview === 'tsne'" id="tsne-vis-container" :overview-data="tsneData"></tsne-vis> -->
     </div>
     <div v-show="data === null">
@@ -11,7 +11,6 @@
     </div>
   </div>
 </template>
-
 <script>
 // import * as jQuery from 'jquery'
 
@@ -44,7 +43,6 @@ export default {
     vertical-align: top
     padding: 0
     margin: 5px
-    border-left: 1px solid rgba(0, 0, 0, 0.4)
 
 #controlpanel-head
     vertical-align: top

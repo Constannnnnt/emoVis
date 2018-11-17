@@ -8,16 +8,16 @@
       <tsne-vis v-if="overview === 'tsne'" id="tsne-vis-container" :overview-data="tsneData"></tsne-vis>
     </div> -->
     <div class="row" style="border-bottom: none">
-       <div style="margin-right: 15px;" v-if="video_stream === false">
+       <div style="margin-right: 30px;" v-if="video_stream === false">
           <button id="camstart" class="webcam_btn" @click="startWebCam">StartCam</button>
       </div>
-      <div style="margin-right: 15px;" v-else-if="video_stream !== false">
+      <div style="margin-right: 30px;" v-else-if="video_stream !== false">
           <button id="camstop" class="webcam_btn" @click="stopWebCam">StopCam</button>
       </div>
-      <div style="margin-left: 50px;" v-if="audio_stream === false">
+      <div style="margin-left: 60px;" v-if="audio_stream === false">
           <button id="micstrat" class="webcam_btn" @click="startMic">StartMic</button>
       </div>
-      <div style="margin-left: 50px;" v-else-if="audio_stream != false">
+      <div style="margin-left: 60px;" v-else-if="audio_stream != false">
           <button id="micstop" class="webcam_btn">StopMic</button>
       </div>
     </div>
@@ -40,17 +40,17 @@ import recognizeMic from 'watson-speech/speech-to-text/recognize-microphone'
 export default {
   name: 'OverView',
   mounted () {
-    for (let i = 0; i < 10; i++) {
-      this.checkText()
-    }
     this.$nextTick(() => {
+      // for (let i = 0; i < 10; i++) {
+      //   this.checkText()
+      // }
       this.initialize()
       // console.log(clmtrackr)
     })
-    // const self = this
-    // window.setInterval(function () {
-    //   self.checkText()
-    // }, 3000)
+    const self = this
+    window.setInterval(function () {
+      self.checkText()
+    }, 3000)
     window.requestAnimFrame = (function () {
       return window.requestAnimationFrame ||
         window.webkitRequestAnimationFrame ||
@@ -284,7 +284,7 @@ export default {
 <style lang='stylus' scoped>
 #overview {
   height: 100%;
-  width: 28%;
+  width: 23%;
   display: inline-block;
   vertical-align: top;
   padding: 0;
@@ -316,8 +316,8 @@ export default {
   background-image: linear-gradient(to right, #30dd8a, #2bb673);
   box-shadow: 0 1px 3px 0 rgba(23, 168, 108, 0.75);
   position: relative;
-  top: -35px;
-  left: 72px;
+  top: -25px;
+  left: 50px;
 }
 
 #video-loader {

@@ -299,7 +299,7 @@ export default {
 
 #radialchart
     height: 100%
-    width: 34%
+    width: 30%
     display: inline-block
     vertical-align: top
     padding: 0
