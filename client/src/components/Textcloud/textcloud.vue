@@ -1,5 +1,5 @@
 <template>
-  <div id='textcloud'>
+  <div id='textcloud' ref='cloudcanvas'>
     <div id='textcloud-head'>
       <h1 id='textcloud-head-title'>Text Cloud</h1>
     </div>
@@ -20,7 +20,7 @@
 import PipeService from '@/services/pipe-service.js'
 import * as d3 from 'd3'
 import MicService from '@/services/mic-service.js'
-// import d3Tip from 'd3-tip'
+import d3Tip from 'd3-tip'
 
 export default {
   name: 'TextCloud',
@@ -98,7 +98,8 @@ export default {
         analytical: '#3a539b',
         confident: '#e87e04',
         tentative: '#d2527f'
-      }
+      },
+      hoverViewLength: 150
     }
   },
   methods: {
@@ -202,12 +203,29 @@ export default {
         .attr('viewBox', `${0} ${0} ${this.canvasWidth} ${this.canvasHeight}`)
         .attr('width', this.canvasWidth)
         .attr('height', this.canvasHeight)
+        // .style('border-right', '1px solid rgba(0, 0, 0, 0.4)')
         // .on('dblclick.zoom', null)
       const lineScale = d3.scaleLinear().domain([0, this.config.maxValueLength]).range([0, this.config.lineLength])
       const radiusScale = d3.scaleLinear().domain([0, this.config.maxValue]).range([0, this.config.radiusLength])
       const parentRadiusScale = d3.scaleLinear().domain([0, this.config.maxValue]).range([0, this.config.radiusLength * 1.5])
       const g = svg.append('g')
-        .attr('transform', 'translate(' + (this.canvasWidth * 0.85 / 2 + this.config.margin.left) + ',' + (this.canvasHeight / 2) + ')')
+        .attr('transform', 'translate(' + (this.canvasWidth * 0.9 / 2 + this.config.margin.left) + ',' + (this.canvasHeight / 2) + ')')
+
+      const Format = d3.format('.2%')
+
+      const tip = d3Tip().attr('class', 'd3-tip').html((nd) => {
+        let str
+        if (nd.id !== undefined) {
+          str = `<div class="d3-tip" style="text-align: left; min-width: 50px; padding-top: 2px; padding-bottom: 2px;
+            padding-left: 4px; padding-right: 4px; background-color: #3a3a3c; color: #ffffff; border: 1px solid #3a3a3c; border-radius: 5px;
+            font-size: 12px; z-index: 5; left: ${d3.event.x}px; top: ${d3.event.y}px">text: ${nd.id}`
+        }
+        str += `</br>group: ${(nd.group)}`
+        str += `</br>score: ${Format(nd.score)}</div>`
+        return str
+      })
+
+      d3.select(this.$refs.cloudcanvas).select('svg').call(tip)
 
       this.simulation = d3.forceSimulation(this.nodes)
         .force('link', d3.forceLink(this.links).id(d => d.idx).distance(d => lineScale(d.score)))
@@ -219,14 +237,14 @@ export default {
 
       // add indicators
       const indicatorG = svg.append('g')
-        .attr('transform', 'translate(' + (this.canvasWidth * 0.84 + this.config.margin.left) + ',' + (0) + ')')
+        .attr('transform', 'translate(' + (this.canvasWidth * 0.87 + this.config.margin.left) + ',' + (0) + ')')
 
       const emoColorArr = Object.keys(this.emotionColor).map((key) => {
         return [key, this.emotionColor[key]]
       })
 
       const indicatorGnum = svg.append('g')
-        .attr('transform', 'translate(' + (this.canvasWidth * 0.84 + this.config.margin.left + 62) + ',' + (0) + ')')
+        .attr('transform', 'translate(' + (this.canvasWidth * 0.87 + this.config.margin.left + 62) + ',' + (0) + ')')
 
       indicatorG.append('g')
         .selectAll('rect')
@@ -291,6 +309,12 @@ export default {
         })
         .attr('fill', d => this.getGroupColor(d.group))
         .attr('fill-opacity', 0.8)
+        .on('mouseover', function (d) {
+          tip.show(d, this)
+        })
+        .on('mouseleave', () => {
+          tip.hide()
+        })
         .on('click', (d) => {
           if (self.clicked.length !== 0) {
             if (self.clicked[0].idx === d.idx) {
@@ -405,13 +429,12 @@ export default {
 
 #textcloud
     height: 100%
-    width: 43%
+    width: 44%
     display: inline-block
     vertical-align: top
     padding: 0
     margin: 5px
     border-left: 1px solid rgba(0, 0, 0, 0.4)
-    border-right: 1px solid rgba(0, 0, 0, 0.4)
 
 #textcloud-head
     vertical-align: top

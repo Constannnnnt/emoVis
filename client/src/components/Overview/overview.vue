@@ -41,9 +41,6 @@ export default {
   name: 'OverView',
   mounted () {
     this.$nextTick(() => {
-      // for (let i = 0; i < 10; i++) {
-      //   this.checkText()
-      // }
       this.initialize()
       // console.log(clmtrackr)
     })
@@ -169,11 +166,11 @@ export default {
       }
     },
     checkText () {
-      // if (this.prev_text !== this.text) {
-      this.prev_text = this.text
-      const text = this.text
-      PipeService.$emit(PipeService.SPEECH_DATA_CHANGE, text)
-      // }
+      if (this.prev_text !== this.text) {
+        this.prev_text = this.text
+        const text = this.text
+        PipeService.$emit(PipeService.SPEECH_DATA_CHANGE, text)
+      }
     },
     stopMic () {
       this.audio_stream = false
@@ -317,7 +314,7 @@ export default {
   box-shadow: 0 1px 3px 0 rgba(23, 168, 108, 0.75);
   position: relative;
   top: -25px;
-  left: 50px;
+  left: 65px;
 }
 
 #video-loader {

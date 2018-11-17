@@ -76,8 +76,6 @@ export default {
   methods: {
     initialzeCanvas () {
       d3.select('#radial-view-vis-container').selectAll('*').data([]).exit().remove()
-      // const elements = document.getElementsByClassName('d3-tip')
-      // while (elements.length > 0) elements[0].remove()
     },
     drawRadial () {
       const el = '#radial-view-vis-container'
@@ -102,7 +100,9 @@ export default {
       const tip = d3Tip().attr('class', 'd3-tip').html((nd) => {
         let str
         if (nd.emotion !== undefined) {
-          str = `<div class="d3-tip">emotion: ${nd.emotion}`
+          str = `<div class="d3-tip" style="text-align: center; min-width: 50px; padding-top: 2px; padding-bottom: 2px;
+            padding-left: 4px; padding-right: 4px; background-color: #3a3a3c; color: #ffffff; border: 1px solid #3a3a3c; border-radius: 5px;
+            font-size: 12px; z-index: 5">emotion: ${nd.emotion}`
         }
         str += `</br>score: ${Format(nd.value)}</div>`
         return str
@@ -124,7 +124,10 @@ export default {
       // Wrapper for the grid & axes
       const axisGrid = g.append('g').attr('class', 'axisWrapper')
 
-      d3.select('#radial-view-vis-container').select('svg').call(tip)
+      // d3.select('#radial-view-vis-container').select('svg').call(tip)
+      d3.select(this.$refs.radialcanvas).select('svg').call(tip)
+
+      // console.log(d3.select(this.$refs.radialcanvas).select('svg').call(tip))
 
       // Draw the background circles
       axisGrid.selectAll('.levels')
@@ -277,17 +280,12 @@ export default {
           return this.config.emotionColor[d.emotion]
         })
         .style('fill-opacity', 0.8)
-        // .on('mouseover', function (d) {
-        //   tip.show(d, this)
-        // })
-        // .on('mouseout', function (d) {
-        //   // tip.hide()
-        //   console.log(d)
-        //   console.log(document.getElementsByClassName('d3-tip'))
-        //   console.log(document)
-        //   const elements = document.getElementsByClassName('d3-tip')
-        //   while (elements.length > 0) elements[0].remove()
-        // })
+        .on('mouseover', function (d) {
+          tip.show(d, this)
+        })
+        .on('mouseleave', () => {
+          tip.hide()
+        })
     }
   },
   components: {
@@ -315,6 +313,20 @@ export default {
     display: inline-block
     font-size: 16px
 
+.d3-tip
+    text-align: center
+    min-width: 50px
+    padding-top: 2px
+    padding-bottom: 2px
+    padding-left: 4px
+    padding-right: 4px
+    background-color: #3a3a3c
+    color: #ffffff
+    border: 1px solid #3a3a3c
+    border-radius: 5px
+    font-size: 12px
+    z-index: 5
+
 .radio-group
     display: inline-block
     margin-left: 10px
@@ -323,5 +335,4 @@ label
     margin-bottom: 0
 h1
     margin-bottom: 0
-
 </style>

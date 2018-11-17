@@ -38,16 +38,18 @@ export default {
 
 #controlpanel
     height: 100%
-    width: 34%
+    width: 100%
     display: inline-block
     vertical-align: top
     padding: 0
     margin: 5px
+    border-left: 1px solid rgba(0, 0, 0, 0.4)
 
 #controlpanel-head
     vertical-align: top
     margin-bottom: 5px
     margin-left: 2px
+    width: 100%
 
 #controlpanel-head-title
     display: inline-block
