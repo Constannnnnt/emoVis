@@ -86,7 +86,7 @@ export default {
           fear: 0.0318136816810977,
           sad: 0.061685934012758334,
           surprised: 0.054805339314313764,
-          happy: 0.18574235649383983
+          joy: 0.18574235649383983
         }
       }
     }
@@ -149,19 +149,23 @@ export default {
       this.emotionData = this.ec.getBlank()
     },
     checkDefaultEmotions (er) {
-      let erflag = false
+      let count = 0
       er.forEach((e) => {
         if (Math.abs(this.config.defaultEmotion[e.emotion] - e.value) < 0.01) {
-          erflag = true
+          count += 1
         }
       })
-      return erflag
+      if (count >= 3) {
+        return true
+      } else {
+        return false
+      }
     },
     startTracking () {
       if (this.video_stream) window.requestAnimFrame(this.startTracking)
       var cp = this.clmtracker.clm.getCurrentParameters()
       var er = this.ec.meanPredict(cp)
-      if (er) {
+      if (er && !this.checkDefaultEmotions(er)) {
         PipeService.$emit(PipeService.EMOTION_DATA_CHANGE, er)
       }
     },

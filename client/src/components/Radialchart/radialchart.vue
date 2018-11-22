@@ -68,7 +68,7 @@ export default {
           neural: '#e4e9ed',
           sad: '#19b5fe',
           surprised: '#fef160',
-          happy: '#2ecc71'
+          joy: '#2ecc71'
         }
       }
     }

@@ -30,6 +30,7 @@ export default {
       this.data = speechdata
       // this.predictScore(speechdata).then((data) => {
       //   this.speechTone.push(data)
+      //   PipeService.$emit(PipeService.SPEECH_CHANGE, data)
       // })
       this.speechTone.push(this.configData)
       this.generatePointLinks()
@@ -61,8 +62,8 @@ export default {
           'text': 'Product',
           'tones': [{
             'score': 0.997482,
-            'tone_id': 'analytical',
-            'tone_name': 'Analytical'
+            'tone_id': 'tentative',
+            'tone_name': 'tentative'
           }]
         }]
       },
@@ -120,7 +121,7 @@ export default {
       const nodeinfo = this.speechTone[this.speechTone.length - 1]
       const id = this.data
       const keys = Object.keys(this.emotionColor)
-      const randomgroup = keys[keys.length * Math.random() << 0]
+      let randomgroup = keys[keys.length * Math.random() << 0]
       const parentnode = {
         'id': id,
         'group': randomgroup, // nodeinfo.document_tone.tones[0].tone_id,
@@ -130,9 +131,13 @@ export default {
 
       this.nodes.push(parentnode)
       this.groups[parentnode.group].push(parentnode)
+      const emitData = JSON.parse(JSON.stringify(nodeinfo))
+      emitData['idx'] = this.speechTone.length - 1
+      PipeService.$emit(PipeService.SPEECH_CHANGE, emitData)
 
       if (nodeinfo.sentences_tone.length !== 1) {
         nodeinfo.sentences_tone.forEach((n, i) => {
+          randomgroup = keys[keys.length * Math.random() << 0]
           const childnode = {
             'id': n.text,
             'group': randomgroup, // n.tones[0].tone_id,
@@ -146,9 +151,9 @@ export default {
             'score': 0
           }
           if (parentnode.group !== childnode.group) {
-            link.score = Math.abs(parentnode.score - childnode.score)
-          } else {
             link.score = Math.abs(parentnode.score + childnode.score)
+          } else {
+            link.score = Math.abs(parentnode.score - childnode.score)
           }
           this.links.push(link)
         })
@@ -221,7 +226,8 @@ export default {
             font-size: 12px; z-index: 5; left: ${d3.event.x}px; top: ${d3.event.y}px">text: ${nd.id}`
         }
         str += `</br>group: ${(nd.group)}`
-        str += `</br>score: ${Format(nd.score)}</div>`
+        str += `</br>score: ${Format(nd.score)}`
+        str += `</br>seq: ${(nd.idx)}</div>`
         return str
       })
 
@@ -429,7 +435,7 @@ export default {
 
 #textcloud
     height: 100%
-    width: 44%
+    width: 43%
     display: inline-block
     vertical-align: top
     padding: 0
