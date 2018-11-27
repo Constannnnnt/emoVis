@@ -113,10 +113,19 @@ export default {
         'analytical': {'cnt': 0, 'val': 0.0},
         'confident': {'cnt': 0, 'val': 0.0},
         'tentative': {'cnt': 0, 'val': 0.0}}
-      sd.sentences_tone.forEach((tone) => {
-        sobj[tone.tones[0].tone_id].val += tone.tones[0].score
-        sobj[tone.tones[0].tone_id].cnt += 1
-      })
+      console.log(sd)
+      if (sd.sentences_tone !== undefined) {
+        sd.sentences_tone.forEach((tone) => {
+          sobj[tone.tones[0].tone_id].val += tone.tones[0].score
+          sobj[tone.tones[0].tone_id].cnt += 1
+        })
+      } else {
+        sd.document_tone.tones.forEach((tone) => {
+          sobj[tone.tone_id].val += tone.score
+          sobj[tone.tone_id].cnt += 1
+        })
+      }
+
       return sobj
     },
     addData () {

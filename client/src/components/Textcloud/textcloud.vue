@@ -25,8 +25,8 @@ import d3Tip from 'd3-tip'
 export default {
   name: 'TextCloud',
   mounted () {
-    this.initialzeCanvas()
     PipeService.$on(PipeService.SPEECH_DATA_CHANGE, (speechdata) => {
+      if (!this.initial) this.initialzeCanvas()
       this.data = speechdata
       this.predictScore(speechdata).then((data) => {
         this.speechTone.push(data)
@@ -103,7 +103,8 @@ export default {
         confident: '#e87e04',
         tentative: '#d2527f'
       },
-      hoverViewLength: 150
+      hoverViewLength: 150,
+      initial: false
     }
   },
   methods: {
@@ -118,6 +119,7 @@ export default {
         .attr('viewBox', `${0} ${0} ${this.canvasWidth} ${this.canvasHeight}`)
         .attr('width', this.canvasWidth)
         .attr('height', this.canvasHeight)
+      this.initial = true
     },
     async predictScore (text) {
       const response = await MicService.toneAnalyze({
@@ -129,9 +131,6 @@ export default {
     generatePointLinks () {
       const nodeinfo = JSON.parse(JSON.stringify(this.speechTone[this.speechTone.length - 1].data))
       const id = this.data
-      if (nodeinfo.document_tone.tones === undefined || nodeinfo.document_tone.tones[0].tone_id === undefined || nodeinfo.document_tone.tones[0].score === undefined) {
-        return
-      }
       const parentnode = {
         'id': id,
         'group': nodeinfo.document_tone.tones[0].tone_id,
@@ -175,12 +174,25 @@ export default {
             const link1 = {
               'source': parentnode.idx,
               'target': pnodes[pnodes.length - 2].idx,
-              'score': Math.abs(parentnode.score - pnodes[pnodes.length - 2].score)
+              'score': 0
             }
+
+            if (parentnode.group !== pnodes[pnodes.length - 2].group) {
+              link1.score = Math.abs(parentnode.score + pnodes[pnodes.length - 2].score)
+            } else {
+              link1.score = Math.abs(parentnode.score - pnodes[pnodes.length - 2].score)
+            }
+
             const link2 = {
               'source': parentnode.idx,
               'target': this.groups[parentnode.group][this.groups[parentnode.group].length - 2].idx,
-              'score': Math.abs(parentnode.score - this.groups[parentnode.group][this.groups[parentnode.group].length - 2].score)
+              'score': 0
+            }
+
+            if (parentnode.group !== this.groups[parentnode.group][this.groups[parentnode.group].length - 2].group) {
+              link2.score = Math.abs(parentnode.score + this.groups[parentnode.group][this.groups[parentnode.group].length - 2].score)
+            } else {
+              link2.score = Math.abs(parentnode.score - this.groups[parentnode.group][this.groups[parentnode.group].length - 2].score)
             }
 
             this.links.push(link1)
@@ -189,7 +201,12 @@ export default {
             const link1 = {
               'source': parentnode.idx,
               'target': pnodes[pnodes.length - 2].idx,
-              'score': Math.abs(parentnode.score - pnodes[pnodes.length - 2].score)
+              'score': 0
+            }
+            if (parentnode.group !== pnodes[pnodes.length - 2].group) {
+              link1.score = Math.abs(parentnode.score + pnodes[pnodes.length - 2].score)
+            } else {
+              link1.score = Math.abs(parentnode.score - pnodes[pnodes.length - 2].score)
             }
             this.links.push(link1)
           }
@@ -197,7 +214,13 @@ export default {
           const link1 = {
             'source': parentnode.idx,
             'target': pnodes[pnodes.length - 2].idx,
-            'score': Math.abs(parentnode.score - pnodes[pnodes.length - 2].score)
+            'score': 0
+          }
+
+          if (parentnode.group !== pnodes[pnodes.length - 2].group) {
+            link1.score = Math.abs(parentnode.score + pnodes[pnodes.length - 2].score)
+          } else {
+            link1.score = Math.abs(parentnode.score - pnodes[pnodes.length - 2].score)
           }
           this.links.push(link1)
         }
@@ -209,10 +232,12 @@ export default {
     drawGraph () {
       if (this.simulation !== null) {
         this.simulation.stop()
+        d3.select('#textcloud-vis-container').selectAll('circle').data([]).exit().remove()
+        d3.select('#textcloud-vis-container').selectAll('line').data([]).exit().remove()
       }
       const self = this
-        // .style('border-right', '1px solid rgba(0, 0, 0, 0.4)')
-        // .on('dblclick.zoom', null)
+      // .style('border-right', '1px solid rgba(0, 0, 0, 0.4)')
+      // .on('dblclick.zoom', null)
       const svg = d3.select('#text-graph')
       const lineScale = d3.scaleLinear().domain([0, this.config.maxValueLength]).range([0, this.config.lineLength])
       const radiusScale = d3.scaleLinear().domain([0, this.config.maxValue]).range([0, this.config.radiusLength])
