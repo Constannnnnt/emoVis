@@ -19,17 +19,11 @@ import * as d3 from 'd3'
 export default {
   name: 'FlowGraph',
   mounted () {
-    // this.$nextTick(() => {
-    //   this.initializeCanvas()
-    // })
     PipeService.$on(PipeService.EMOTION_DATA_CHANGE, (emotiondata) => {
       this.emotionData = emotiondata
     })
     PipeService.$on(PipeService.SPEECH_CHANGE, (speechdata) => {
       this.speechData = speechdata
-      // console.log(this.speechData)
-      // this.addData()
-      // this.drawTrend()
       if (!this.initial) this.initializeCanvas()
       if (this.emotionData !== null) this.addData()
       if (this.emotionData !== null) this.drawTrend()
