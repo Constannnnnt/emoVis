@@ -55,7 +55,13 @@ npm install
 npm start
 ```
 
-## Contributions
+## TODO
+    - redesign the radial chart
+    - redesign the text cloud
+    - redesign the flow chart
+    - implement the control panel
+
+## Contributing
 
 Feel free to implement anything from the roadmap, submit pull requests, create issues, discuss ideas or spread the word.
 
