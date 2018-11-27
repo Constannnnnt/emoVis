@@ -47,7 +47,7 @@ export default {
     const self = this
     window.setInterval(function () {
       self.checkText()
-    }, 3000)
+    }, 5000)
     window.requestAnimFrame = (function () {
       return window.requestAnimationFrame ||
         window.webkitRequestAnimationFrame ||
@@ -74,8 +74,8 @@ export default {
       audio_stream: false,
       mic_stream: false,
       ec: null,
-      text: 'Team, I know that times are tough! Product',
-      prev_text: 'no I dont think so',
+      text: null, // 'Team, I know that times are tough! Product',
+      prev_text: null, // 'no I dont think so',
       emotionmodel: null,
       model_svm: null,
       clmtracker: null,

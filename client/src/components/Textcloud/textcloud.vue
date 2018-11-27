@@ -25,16 +25,19 @@ import d3Tip from 'd3-tip'
 export default {
   name: 'TextCloud',
   mounted () {
+    this.initialzeCanvas()
     PipeService.$on(PipeService.SPEECH_DATA_CHANGE, (speechdata) => {
-      this.initialzeCanvas()
       this.data = speechdata
-      // this.predictScore(speechdata).then((data) => {
-      //   this.speechTone.push(data)
-      //   PipeService.$emit(PipeService.SPEECH_CHANGE, data)
-      // })
-      this.speechTone.push(this.configData)
-      this.generatePointLinks()
-      this.drawGraph()
+      this.predictScore(speechdata).then((data) => {
+        this.speechTone.push(data)
+        // PipeService.$emit(PipeService.SPEECH_CHANGE, data)
+        console.log(data.data)
+        if (data.data.document_tone.tones !== undefined && data.data.document_tone.tones.length >= 1) {
+          this.generatePointLinks()
+          this.drawGraph()
+        }
+      })
+      // this.speechTone.push(this.configData)
     })
   },
   data () {
@@ -106,9 +109,15 @@ export default {
   methods: {
     initialzeCanvas () {
       d3.select('#textcloud-vis-container').selectAll('*').data([]).exit().remove()
-      if (this.simulation !== null) {
-        this.simulation.stop()
-      }
+      const el = '#textcloud-vis-container'
+      this.canvasWidth = document.querySelector('#textcloud-vis-container').clientWidth
+      this.canvasHeight = document.querySelector('#textcloud-vis-container').clientHeight
+
+      d3.select(el).append('svg')
+        .attr('id', 'text-graph')
+        .attr('viewBox', `${0} ${0} ${this.canvasWidth} ${this.canvasHeight}`)
+        .attr('width', this.canvasWidth)
+        .attr('height', this.canvasHeight)
     },
     async predictScore (text) {
       const response = await MicService.toneAnalyze({
@@ -118,13 +127,14 @@ export default {
       return response
     },
     generatePointLinks () {
-      const nodeinfo = this.speechTone[this.speechTone.length - 1]
+      const nodeinfo = JSON.parse(JSON.stringify(this.speechTone[this.speechTone.length - 1].data))
       const id = this.data
-      const keys = Object.keys(this.emotionColor)
-      let randomgroup = keys[keys.length * Math.random() << 0]
+      if (nodeinfo.document_tone.tones === undefined || nodeinfo.document_tone.tones[0].tone_id === undefined || nodeinfo.document_tone.tones[0].score === undefined) {
+        return
+      }
       const parentnode = {
         'id': id,
-        'group': randomgroup, // nodeinfo.document_tone.tones[0].tone_id,
+        'group': nodeinfo.document_tone.tones[0].tone_id,
         'score': nodeinfo.document_tone.tones[0].score,
         'idx': this.speechTone.length - 1
       }
@@ -135,12 +145,11 @@ export default {
       emitData['idx'] = this.speechTone.length - 1
       PipeService.$emit(PipeService.SPEECH_CHANGE, emitData)
 
-      if (nodeinfo.sentences_tone.length !== 1) {
+      if (nodeinfo.sentences_tone !== undefined && nodeinfo.sentences_tone.length > 1) {
         nodeinfo.sentences_tone.forEach((n, i) => {
-          randomgroup = keys[keys.length * Math.random() << 0]
           const childnode = {
             'id': n.text,
-            'group': randomgroup, // n.tones[0].tone_id,
+            'group': n.tones[0].tone_id,
             'score': n.tones[0].score,
             'idx': (parentnode.idx).toString() + '-' + i.toString()
           }
@@ -198,18 +207,13 @@ export default {
       return this.emotionColor[group]
     },
     drawGraph () {
+      if (this.simulation !== null) {
+        this.simulation.stop()
+      }
       const self = this
-      const el = '#textcloud-vis-container'
-      this.canvasWidth = document.querySelector('#textcloud-vis-container').clientWidth
-      this.canvasHeight = document.querySelector('#textcloud-vis-container').clientHeight
-
-      const svg = d3.select(el).append('svg')
-        .attr('id', 'text-graph')
-        .attr('viewBox', `${0} ${0} ${this.canvasWidth} ${this.canvasHeight}`)
-        .attr('width', this.canvasWidth)
-        .attr('height', this.canvasHeight)
         // .style('border-right', '1px solid rgba(0, 0, 0, 0.4)')
         // .on('dblclick.zoom', null)
+      const svg = d3.select('#text-graph')
       const lineScale = d3.scaleLinear().domain([0, this.config.maxValueLength]).range([0, this.config.lineLength])
       const radiusScale = d3.scaleLinear().domain([0, this.config.maxValue]).range([0, this.config.radiusLength])
       const parentRadiusScale = d3.scaleLinear().domain([0, this.config.maxValue]).range([0, this.config.radiusLength * 1.5])
