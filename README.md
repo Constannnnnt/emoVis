@@ -61,6 +61,13 @@ npm start
     - redesign the flow chart
     - implement the control panel
 
+## Acknowledgement
+
+I don't have enough time and computing resources to train models for the facial emotion prediction and speech emotion recognition so I borrowed existing services.
+
+The emotion model and classifier, as well as the landmark tracker are from [auduno/clmtrackr](https://github.com/auduno/clmtrackr).
+The [speech-to-text](https://cloud.ibm.com/apidocs/speech-to-text) & [tone analyzer](https://cloud.ibm.com/apidocs/tone-analyzer) are from IBM Waston.
+
 ## Contributing
 
 Feel free to implement anything from the roadmap, submit pull requests, create issues, discuss ideas or spread the word.

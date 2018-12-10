@@ -18,7 +18,7 @@
           <button id="micstrat" class="webcam_btn" @click="startMic">StartMic</button>
       </div>
       <div style="margin-left: 60px;" v-else-if="audio_stream != false">
-          <button id="micstop" class="webcam_btn">StopMic</button>
+          <button id="micstop" class="webcam_btn" @click="stopMic">StopMic</button>
       </div>
     </div>
   </div>
@@ -47,7 +47,7 @@ export default {
     const self = this
     window.setInterval(function () {
       self.checkText()
-    }, 5000)
+    }, 3000)
     window.requestAnimFrame = (function () {
       return window.requestAnimationFrame ||
         window.webkitRequestAnimationFrame ||
@@ -73,6 +73,7 @@ export default {
       video_stream: false,
       audio_stream: false,
       mic_stream: false,
+      audioStream: null,
       ec: null,
       text: null, // 'Team, I know that times are tough! Product',
       prev_text: null, // 'no I dont think so',
@@ -178,6 +179,8 @@ export default {
     },
     stopMic () {
       this.audio_stream = false
+      this.audioStream.stop()
+      this.audioStream.stop.bind(this.audioStream)
     },
     startMic () {
       fetch('http://localhost:8081/api/token')
@@ -195,6 +198,7 @@ export default {
            * Prints the users speech to the console
            * and assigns the text to the state.
            */
+          this.audioStream = stream
           this.audio_stream = true
           stream.on('data', (data) => {
             // this.setState({
@@ -205,13 +209,6 @@ export default {
           stream.on('error', (err) => {
             console.log(err)
           })
-
-          const self = this
-          console.log(self)
-          document.querySelector('#micstop').onclick = function () {
-            self.audio_stream = false
-            return stream.stop.bind(stream)
-          }
         }).catch((err) => {
           console.log(err)
         })

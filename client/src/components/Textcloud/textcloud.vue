@@ -31,7 +31,6 @@ export default {
       this.predictScore(speechdata).then((data) => {
         this.speechTone.push(data)
         // PipeService.$emit(PipeService.SPEECH_CHANGE, data)
-        console.log(data.data)
         if (data.data.document_tone.tones !== undefined && data.data.document_tone.tones.length >= 1) {
           this.generatePointLinks()
           this.drawGraph()
@@ -230,6 +229,7 @@ export default {
       return this.emotionColor[group]
     },
     drawGraph () {
+      d3.select('#textcloud-vis-container').selectAll('.emoNum').data([]).exit().remove()
       if (this.simulation !== null) {
         this.simulation.stop()
         d3.select('#textcloud-vis-container').selectAll('circle').data([]).exit().remove()
@@ -309,6 +309,7 @@ export default {
         .data(emoColorArr)
         .enter()
         .append('text')
+        .attr('class', 'emoNum')
         .text((d) => this.groups[d[0]].length)
         // .attr('fill', 'white')
         .attr('x', 2)
